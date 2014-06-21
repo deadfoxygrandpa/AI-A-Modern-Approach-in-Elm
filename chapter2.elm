@@ -1,10 +1,10 @@
-import open Automaton
-import open Dict
+import Automaton (..)
+import Dict (..)
 
 {-
 Agents as described in chapter 2 of Russel and Norvig's AI book.
 Goal is to design different agents that efficiently clean an area
-of 2 tiles (A and B). The possible actions are to suck or move to 
+of 2 tiles (A and B). The possible actions are to suck or move to
 the left or right.
 -}
 
@@ -12,11 +12,11 @@ the left or right.
 -- I will use an Automaton to represent them
 type Agent = Automaton Percept Action
 
--- Possible actions the robotic vacuum cleaner can take: suck, move left, 
+-- Possible actions the robotic vacuum cleaner can take: suck, move left,
 -- move right, or wait
 data Action = Suck | MoveRight | MoveLeft | Rest
-            
--- A perception of the current environment            
+
+-- A perception of the current environment
 type Percept = (Location, Status)
 data Location = A | B
 data Status = Clean | Dirty
@@ -33,12 +33,12 @@ type Rule = ((Percept -> Bool), Action)
 -- An AI agent based on a lookup table. Adds the current percept to all
 -- previously encountered percepts, for a simple memory system
 tableDrivenAgent : Table -> Agent
-tableDrivenAgent table = 
-    hiddenState (table, []) (\percept (table', percepts) -> 
-        ((table', percept :: percepts), lookup' (percept :: percepts) table'))
-    
-lookup' : [Percept] -> Table -> Action
-lookup' percepts table = maybe Rest id <| lookup (show percepts) table
+tableDrivenAgent table =
+    hiddenState (table, []) (\percept (table', percepts) ->
+        ((table', percept :: percepts), lookup (percept :: percepts) table'))
+
+lookup : [Percept] -> Table -> Action
+lookup percepts table = maybe Rest id <| get (show percepts) table
 
 tableVacuumAgent = tableDrivenAgent <| fromList [ ("[(A,Clean)]", MoveRight)
                                                 , ("[(A,Dirty)]", Suck)
@@ -92,7 +92,7 @@ reflexVacuumAgent2 =
 testAgent : Agent -> Element
 testAgent agent = let x = (step (A, Clean) agent) in
                   asText <| (snd x, snd <| step (A, Dirty) (fst x))
-                                           
+
 main = flow down [ plainText "tableVacuumAgent: " `beside` (testAgent tableVacuumAgent)
                  , plainText "reflexVacuumAgent: " `beside` (testAgent reflexVacuumAgent)
                  , plainText "reflexVacuumAgent2: " `beside` (testAgent reflexVacuumAgent2)
